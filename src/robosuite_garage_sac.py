@@ -17,6 +17,7 @@ from garage.torch.q_functions import ContinuousMLPQFunction
 from garage.trainer import Trainer
 
 import robosuite as suite
+from robosuite.wrappers import GymWrapper
 
 
 @wrap_experiment(snapshot_mode="none")
@@ -36,14 +37,14 @@ def robosuite_sac(ctxt=None, seed=1):
         suite.make(
             env_name="Lift",  # try with other tasks like "Stack" and "Door"
             robots="Panda",  # try with other robots like "Sawyer" and "Jaco"
-            has_renderer=True,
-            has_offscreen_renderer=False,
+            has_renderer=False,
+            has_offscreen_renderer=True,
             use_camera_obs=False,
         )
     )
 
     # load robosuite Env as gym.Env into garage
-    env = normalize(GymEnv(suite_env))
+    env = normalize(GymEnv(suite_env, is_image=False, max_episode_length=10))
 
     policy = TanhGaussianMLPPolicy(
         env_spec=env.spec,
@@ -62,13 +63,15 @@ def robosuite_sac(ctxt=None, seed=1):
         env_spec=env.spec, hidden_sizes=[256, 256], hidden_nonlinearity=F.relu
     )
 
-    replay_buffer = PathBuffer(capacity_in_transitions=int(1e6))
+    replay_buffer = PathBuffer(capacity_in_transitions=int(1e1))
 
     sampler = LocalSampler(
         agents=policy,
         envs=env,
         max_episode_length=env.spec.max_episode_length,
         worker_class=FragmentWorker,
+        worker_args={"n_envs": 2},
+        n_workers=2,
     )
 
     sac = SAC(
@@ -77,10 +80,10 @@ def robosuite_sac(ctxt=None, seed=1):
         qf1=qf1,
         qf2=qf2,
         sampler=sampler,
-        gradient_steps_per_itr=1000,
-        max_episode_length_eval=1000,
+        gradient_steps_per_itr=10,
+        max_episode_length_eval=10,
         replay_buffer=replay_buffer,
-        min_buffer_size=1e4,
+        min_buffer_size=1e1,
         target_update_tau=5e-3,
         discount=0.99,
         buffer_batch_size=256,
@@ -94,8 +97,8 @@ def robosuite_sac(ctxt=None, seed=1):
         set_gpu_mode(False)
     sac.to()
     trainer.setup(algo=sac, env=env)
-    trainer.train(n_epochs=1000, batch_size=1000)
+    trainer.train(n_epochs=10, batch_size=10)
 
 
 s = np.random.randint(0, 1000)
-sac_half_cheetah_batch(seed=521)
+robosuite_sac(seed=521)
