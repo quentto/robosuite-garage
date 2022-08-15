@@ -1,5 +1,4 @@
 # robosuite-garage
--------
 
 [**robosuite**](https://robosuite.ai/) &ensp; [**robosuite-pickable**](https://github.com/quentto/robosuite-pickable) &ensp; [**garage**](https://github.com/rlworkgroup/garage) &ensp; [**[ARISE Initiative]**](https://github.com/ARISE-Initiative)
 
