@@ -23,3 +23,6 @@ Data-driven algorithms, such as reinforcement learning and imitation learning, p
 * mujoco-py==2.1.2.14
 * gym==0.21.0
 * robosuite: [robosuite-pickable](https://github.com/quentto/robosuite-pickable) (forked from version 1.3.2)
+** ```sh
+pip install git+https://github.com/quentto/robosuite-pickable.git
+```
